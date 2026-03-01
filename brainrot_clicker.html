@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>🦈 Ultimate Brain Rot Clicker!</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    body {
+      font-family: 'Comic Sans MS', 'Chalkboard SE', cursive;
+      background: linear-gradient(160deg, #1a1a6e 0%, #b721ff 50%, #ff6fdf 100%);
+      min-height: 100vh;
+      color: #333;
+      user-select: none;
+      -webkit-user-select: none;
+      overflow-x: hidden;
+    }
+
+    /* ===== HEADER ===== */
+    .header {
+      background: rgba(0,0,0,0.3);
+      padding: 8px 12px;
+      text-align: center;
+      backdrop-filter: blur(8px);
+    }
+    h1 {
+      font-size: clamp(15px, 4.8vw, 28px);
+      color: #fff;
+      text-shadow: 2px 2px 6px rgba(0,0,0,0.6);
+      line-height: 1.3;
+    }
+    #prestige-bar {
+      font-size: clamp(10px, 2.8vw, 14px);
+      color: #ffd700;
+      min-height: 16px;
+      font-weight: bold;
+    }
+
+    /* ===== SCORE PANEL ===== */
+    .score-panel {
+      background: rgba(255,255,255,0.93);
+      margin: 7px 8px;
+      border-radius: 18px;
+      padding: 9px 14px 7px;
+      text-align: center;
+      border: 3px solid gold;
+      box-shadow: 0 4px 18px rgba(0,0,0,0.3);
+    }
+    #rizz-count {
+      font-size: clamp(26px, 8.5vw, 52px);
+      font-weight: bold;
+      color: #d00060;
+      display: block;
+      line-height: 1.1;
+    }
+    .rizz-label { font-size: 13px; color: #888; }
+    #rps-display { font-size: clamp(12px, 3.2vw, 17px); color: #7b2ff7; font-weight: bold; margin-top: 2px; }
+    #level-title { font-size: clamp(11px, 3vw, 17px); color: #e74c3c; font-weight: bold; margin-top: 3px; }
+
+    /* ===== CLICKER AREA ===== */
+    .clicker-area { text-align: center; position: relative; padding: 2px 0 0; }
+    #main-clicker {
+      font-size: clamp(78px, 21vw, 138px);
+      background: none;
+      border: none;
+      cursor: pointer;
+      transition: transform 0.1s;
+      touch-action: manipulation;
+      display: inline-block;
+      line-height: 1;
+      padding: 4px;
+      filter: drop-shadow(0 5px 14px rgba(0,0,0,0.4));
+      animation: idle-bob 2.8s ease-in-out infinite;
+    }
+    @keyframes idle-bob {
+      0%,100% { transform: translateY(0) rotate(0deg) scaleX(1); }
+      40%      { transform: translateY(-7px) rotate(3deg) scaleX(1.04); }
+      80%      { transform: translateY(-3px) rotate(-2deg) scaleX(0.97); }
+    }
+    #main-clicker.clicked { animation: none; transform: scale(0.8) rotate(-10deg) !important; }
+    #combo-display {
+      font-size: clamp(13px, 3.8vw, 21px);
+      font-weight: bold;
+      color: #fff;
+      text-shadow: 1px 1px 4px rgba(0,0,0,0.6);
+      min-height: 24px;
+    }
+    #click-power-display {
+      font-size: clamp(10px, 2.6vw, 14px);
+      color: rgba(255,255,255,0.85);
+      min-height: 16px;
+    }
+
+    /* ===== CHARACTER NAME ===== */
+    #clicker-name {
+      font-size: clamp(10px, 2.6vw, 14px);
+      color: rgba(255,255,255,0.75);
+      font-style: italic;
+      min-height: 16px;
+      margin-bottom: 2px;
+    }
+
+    /* ===== PRESTIGE BUTTON ===== */
+    .prestige-wrap { text-align: center; min-height: 8px; }
+    #prestige-btn {
+      display: none;
+      background: linear-gradient(135deg, #ffd700, #ff6b6b, #ffd700);
+      background-size: 200% auto;
+      color: white;
+      border: 3px solid white;
+      border-radius: 18px;
+      padding: 8px 20px;
+      font-size: clamp(12px, 3.2vw, 17px);
+      font-family: inherit;
+      cursor: pointer;
+      margin: 3px auto;
+      font-weight: bold;
+      animation: prestige-pulse 1.2s infinite, shine 3s linear infinite;
+      touch-action: manipulation;
+      box-shadow: 0 0 22px rgba(255,215,0,0.8);
+    }
+    @keyframes prestige-pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.06)} }
+    @keyframes shine { to { background-position: 200% center; } }
+
+    /* ===== TABS ===== */
+    .tab-nav {
+      display: flex;
+      gap: 3px;
+      padding: 0 8px;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    .tab-nav::-webkit-scrollbar { display: none; }
+    .tab-btn {
+      flex: 1;
+      min-width: 58px;
+      padding: 6px 3px;
+      border: 2px solid rgba(255,255,255,0.5);
+      border-radius: 10px 10px 0 0;
+      background: rgba(255,255,255,0.2);
+      color: white;
+      font-family: inherit;
+      font-size: clamp(8px, 2.5vw, 13px);
+      cursor: pointer;
+      font-weight: bold;
+      transition: all 0.2s;
+      touch-action: manipulation;
+      white-space: nowrap;
+      border-bottom: none;
+    }
+    .tab-btn.active { background: white; color: #1a1a6e; }
+
+    .shop {
+      background: white;
+      margin: 0 8px 8px;
+      border-radius: 0 0 16px 16px;
+      padding: 8px;
+      border: 2px solid rgba(255,255,255,0.5);
+      max-height: 37vh;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    .shop-hint { color: #999; font-size: 11px; margin-bottom: 6px; text-align: center; }
+
+    /* ===== ITEM BUTTONS ===== */
+    .item-btn {
+      border: 2px solid rgba(0,0,0,0.12);
+      border-radius: 12px;
+      padding: 7px 9px;
+      font-size: clamp(10px, 3vw, 14px);
+      font-family: inherit;
+      cursor: pointer;
+      margin: 3px 0;
+      width: 100%;
+      transition: all 0.15s;
+      touch-action: manipulation;
+      text-align: left;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 5px;
+    }
+    .item-btn:active:not(:disabled) { transform: scale(0.97); }
+    .item-btn:disabled { background: #ddd !important; color: #aaa !important; cursor: not-allowed; border-color: #ccc !important; }
+
+    .gen-btn   { background: linear-gradient(135deg, #0652DD, #1289A7); color: white; }
+    .upg-btn   { background: linear-gradient(135deg, #f7971e, #ffd200); color: #333; }
+    .upg-btn.bought { background: linear-gradient(135deg, #b2bec3, #636e72) !important; color: white !important; }
+    .pu-btn    { background: linear-gradient(135deg, #c0392b, #e74c3c); color: white; }
+
+    .item-info { flex: 1; min-width: 0; }
+    .item-name { font-weight: bold; font-size: clamp(10px, 3vw, 13px); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .item-desc { font-size: clamp(8px, 2.2vw, 11px); opacity: 0.85; }
+    .item-badge { font-weight: bold; background: rgba(0,0,0,0.18); border-radius: 8px; padding: 3px 7px; font-size: clamp(9px, 2.4vw, 12px); white-space: nowrap; flex-shrink: 0; }
+
+    /* ===== ACHIEVEMENTS ===== */
+    .ach-item {
+      background: linear-gradient(135deg, #6c3483, #e91e8c);
+      color: white;
+      border-radius: 10px;
+      padding: 6px 10px;
+      margin: 3px 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      opacity: 0.32;
+      transition: all 0.3s;
+      font-size: clamp(9px, 2.6vw, 12px);
+    }
+    .ach-item.unlocked { opacity: 1; box-shadow: 0 2px 10px rgba(233,30,140,0.4); }
+    .ach-icon { font-size: clamp(16px, 4.5vw, 24px); flex-shrink: 0; }
+
+    /* ===== TOAST ===== */
+    #toast {
+      position: fixed;
+      top: 12px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-130px);
+      background: linear-gradient(135deg, #e055e0cc, #c0392bcc);
+      color: white;
+      padding: 10px 16px;
+      border-radius: 18px;
+      font-size: clamp(11px, 3.2vw, 15px);
+      font-weight: bold;
+      z-index: 3000;
+      transition: transform 0.4s cubic-bezier(.34,1.56,.64,1);
+      text-align: center;
+      max-width: 92vw;
+      box-shadow: 0 4px 22px rgba(0,0,0,0.5);
+      pointer-events: none;
+    }
+    #toast.show { transform: translateX(-50%) translateY(0); }
+
+    /* ===== FLOATING TEXT ===== */
+    .float-text {
+      position: fixed;
+      font-size: clamp(15px, 4vw, 24px);
+      font-weight: bold;
+      color: #FFD700;
+      text-shadow: 1px 1px 4px rgba(0,0,0,0.55);
+      pointer-events: none;
+      animation: floatUp 0.9s ease-out forwards;
+      z-index: 2000;
+    }
+    @keyframes floatUp {
+      0%   { opacity: 1; transform: translateY(0) scale(1); }
+      100% { opacity: 0; transform: translateY(-65px) scale(1.5); }
+    }
+
+    /* ===== RANDOM EVENTS ===== */
+    .random-event {
+      position: fixed;
+      font-size: clamp(44px, 12vw, 70px);
+      cursor: pointer;
+      z-index: 2500;
+      animation: wriggle 0.45s infinite alternate;
+      touch-action: manipulation;
+      filter: drop-shadow(0 0 14px gold);
+    }
+    @keyframes wriggle {
+      from { transform: scale(1) rotate(-9deg); }
+      to   { transform: scale(1.28) rotate(9deg); }
+    }
+
+    /* ===== OHIO ALERT ===== */
+    #ohio-alert {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(180,0,0,0.85);
+      z-index: 4000;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      text-align: center;
+      color: white;
+      font-size: clamp(16px, 5.5vw, 34px);
+      animation: flicker 0.18s infinite alternate;
+    }
+    @keyframes flicker { from{opacity:1} to{opacity:0.82} }
+    #ohio-bar-wrap { width: 72%; background: rgba(255,255,255,0.28); border-radius: 20px; height: 26px; margin: 14px auto 0; overflow: hidden; }
+    #ohio-bar { height: 100%; background: #ffd700; border-radius: 20px; transition: width 0.1s linear; }
+    #ohio-escape-btn {
+      margin-top: 16px;
+      font-family: inherit;
+      font-size: clamp(16px, 5.5vw, 28px);
+      background: white;
+      color: red;
+      border: 4px solid white;
+      border-radius: 20px;
+      padding: 10px 26px;
+      cursor: pointer;
+      font-weight: bold;
+      touch-action: manipulation;
+    }
+
+    /* ===== TRALALA SPECIAL ===== */
+    @keyframes rainbow-spin {
+      0%   { filter: hue-rotate(0deg) drop-shadow(0 0 16px gold); }
+      50%  { filter: hue-rotate(180deg) drop-shadow(0 0 24px cyan); }
+      100% { filter: hue-rotate(360deg) drop-shadow(0 0 16px gold); }
+    }
+    .rainbow { animation: rainbow-spin 1s linear infinite !important; }
+
+    /* ===== RESPONSIVE ===== */
+    @media (min-width: 600px) {
+      .game-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 0 10px; align-items: start; }
+      .left-col { grid-column: 1; }
+      .right-col { grid-column: 2; }
+      .shop { max-height: 55vh; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- OHIO ALERT -->
+<div id="ohio-alert">
+  <div>💀 OHIO ALERT! 💀</div>
+  <div style="font-size:clamp(12px,3.8vw,20px);margin-top:6px">TAP FAST TO ESCAPE OHIO!</div>
+  <div id="ohio-bar-wrap"><div id="ohio-bar" style="width:100%"></div></div>
+  <button id="ohio-escape-btn" onclick="ohioClick()">🥁 TAP TO ESCAPE! 🥁</button>
+</div>
+
+<!-- TOAST -->
+<div id="toast">🏆 Achievement!</div>
+
+<!-- HEADER -->
+<div class="header">
+  <h1 id="game-title">🦈 Ultimate Brain Rot Clicker! 🦈</h1>
+  <div id="prestige-bar"></div>
+</div>
+
+<div class="game-layout">
+  <div class="left-col">
+    <!-- SCORE -->
+    <div class="score-panel">
+      <span id="rizz-count">0</span>
+      <span class="rizz-label">✨ Rizz</span>
+      <div id="rps-display">⚡ 0 Rizz/sec</div>
+      <div id="level-title">Level: Bro in Ohio 💀</div>
+    </div>
+
+    <!-- CLICKER -->
+    <div class="clicker-area">
+      <div id="clicker-name">Tralalero Tralala</div>
+      <button id="main-clicker">🦈</button>
+      <div id="combo-display"></div>
+      <div id="click-power-display">+1 per tap</div>
+    </div>
+
+    <!-- PRESTIGE -->
+    <div class="prestige-wrap">
+      <button id="prestige-btn" onclick="doPrestige()">
+        ⭐ GO FULL SIGMA! ⭐<br><small style="font-size:0.7em">Prestige for permanent boost!</small>
+      </button>
+    </div>
+  </div>
+
+  <div class="right-col">
+    <!-- TABS -->
+    <div class="tab-nav">
+      <button class="tab-btn active" onclick="switchTab('generators',this)">🏭 Auto</button>
+      <button class="tab-btn" onclick="switchTab('upgrades',this)">💪 Tap+</button>
+      <button class="tab-btn" onclick="switchTab('powerups',this)">⚡ Powers</button>
+      <button class="tab-btn" onclick="switchTab('achievements',this)">🏆 Awards</button>
+    </div>
+    <div class="shop">
+      <div id="tab-generators" class="tab-content active"><div id="gen-list"></div></div>
+      <div id="tab-upgrades"   class="tab-content"><div id="upg-list"></div></div>
+      <div id="tab-powerups"   class="tab-content"><div id="pu-list"></div></div>
+      <div id="tab-achievements" class="tab-content"><div id="ach-list"></div></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+// CLICKER CHARACTERS — cycles as you level up!
+// ═══════════════════════════════════════════════════════
+const CLICKER_CHARS = [
+  { emoji:'🦈', name:'Tralalero Tralala',    hint:'tra la la la la!' },
+  { emoji:'🥁', name:'Tung Tung Tung Sahur', hint:'TUNG TUNG TUNG!' },
+  { emoji:'🍓🐘',name:'Trippi Troppi',        hint:'strawberry elephant!' },
+  { emoji:'🦫', name:'Capybara',             hint:'chillest animal alive 😎' },
+  { emoji:'🐱', name:'Meowl Cat',            hint:'MEOOOOWL!' },
+  { emoji:'🐊✈️',name:'Bombardiro Crocodilo', hint:'BOMBASTIC!' },
+  { emoji:'🐸', name:'Quandale Dingle',      hint:"Quandale Dingle here" },
+  { emoji:'🚽', name:'Skibidi Toilet',       hint:'SKIBIDI SKIBIDI!' },
+];
+let clickerIdx = 0;
+
+// ═══════════════════════════════════════════════════════
+// GENERATORS
+// ═══════════════════════════════════════════════════════
+const GENERATORS = [
+  { id:'capy',    emoji:'🦫',  name:'Capybara Clan',          desc:'+1 Rizz/sec — the chillest crew ever',        baseCost:20,      baseProd:1 },
+  { id:'tralala', emoji:'🦈',  name:'Tralalero Squad',        desc:'+5 Rizz/sec — tra la la la la la!',           baseCost:100,     baseProd:5 },
+  { id:'tung',    emoji:'🥁',  name:'Tung Tung Band',         desc:'+20 Rizz/sec — TUNG TUNG TUNG TUNG!',        baseCost:500,     baseProd:20 },
+  { id:'trippi',  emoji:'🍓🐘',name:'Trippi Troppi Parade',   desc:'+80 Rizz/sec — stomping strawberries!',       baseCost:2000,    baseProd:80 },
+  { id:'meowl',   emoji:'🐱',  name:'Meowl Cat Gang',         desc:'+300 Rizz/sec — MEOOOOWL!!!!',               baseCost:8000,    baseProd:300 },
+  { id:'bomba',   emoji:'🐊✈️',name:'Bombardiro Squadron',    desc:'+1,200 Rizz/sec — BOMBASTIC CROCODILO!',     baseCost:30000,   baseProd:1200 },
+  { id:'quandale',emoji:'🐸',  name:'Quandale Squad',         desc:"+5,000 Rizz/sec — Quandale Dingle here",     baseCost:100000,  baseProd:5000 },
+  { id:'skibidi', emoji:'🚽',  name:'Skibidi Army',           desc:'+20,000 Rizz/sec — SKIBIDI SKIBIDI!',        baseCost:400000,  baseProd:20000 },
+  { id:'brainrot',emoji:'🧠',  name:'Brain Rot Server',       desc:"+80,000 Rizz/sec — brain's completely gone", baseCost:1500000, baseProd:80000 },
+  { id:'rizzdim', emoji:'✨',  name:'Rizz Dimension',         desc:'+350,000 Rizz/sec — beyond Ohio itself!',    baseCost:6000000, baseProd:350000 },
+];
+GENERATORS.forEach(g => g.owned = 0);
+
+// ═══════════════════════════════════════════════════════
+// CLICK UPGRADES
+// ═══════════════════════════════════════════════════════
+const CLICK_UPGRADES = [
+  { id:'paws',   name:'🦈 Tralalero Fins',    desc:'+2 Rizz per tap',   cost:200,    bonus:2,   bought:false },
+  { id:'tung',   name:'🥁 Tung Tung Drumstick',desc:'+7 Rizz per tap',  cost:1500,   bonus:7,   bought:false },
+  { id:'trunk',  name:'🍓🐘 Trippi Stomp',    desc:'+40 Rizz per tap',  cost:10000,  bonus:40,  bought:false },
+  { id:'meowl',  name:'🐱 Mega Meowl Paw',   desc:'+200 Rizz per tap', cost:75000,  bonus:200, bought:false },
+  { id:'bomba',  name:'🐊✈️ Bombardiro Blast',desc:'+750 Rizz per tap', cost:500000, bonus:750, bought:false },
+];
+
+// ═══════════════════════════════════════════════════════
+// POWER-UPS
+// ═══════════════════════════════════════════════════════
+const POWERUPS = [
+  { id:'rush',    name:'🦈 Tra La La Rush!',     desc:'3× all Rizz production for 15 seconds!', cdMax:60,  cd:0, dur:15000 },
+  { id:'bomb',    name:'🐊 Bombardiro BOMB!',     desc:'Instant 2 minutes of your Rizz/sec!',   cdMax:120, cd:0, dur:0 },
+  { id:'roulette',name:'🎰 Tung Tung Roulette',  desc:'TUNG! Spin for a wild surprise!',        cdMax:30,  cd:0, dur:0 },
+  { id:'trippi',  name:'🍓🐘 Trippi Blessing',    desc:'10× tap power for 20 seconds!',          cdMax:90,  cd:0, dur:20000 },
+];
+
+// ═══════════════════════════════════════════════════════
+// LEVEL TITLES
+// ═══════════════════════════════════════════════════════
+const LEVEL_TITLES = [
+  [0,         'Bro in Ohio 💀'],
+  [50,        'Still Stuck in Ohio 😓'],
+  [200,       'W Rizz Detected 📈'],
+  [500,       'Kinda Bussin 🔥'],
+  [1000,      'Capybara Approved 🦫'],
+  [2500,      'Tra La La Mode 🦈'],
+  [5000,      'Tung Tung Energy 🥁'],
+  [10000,     'Trippi Troppi Friend 🍓🐘'],
+  [25000,     'Meowl Level ACHIEVED 🐱'],
+  [50000,     'Bombardiro Style 🐊✈️'],
+  [100000,    'Quandale\'s Bestie 🐸'],
+  [250000,    'SIGMA BRAIN ROT 🧠'],
+  [500000,    'Bombastic Side Eye 😒👑'],
+  [1000000,   'RIZZ GOD ✨'],
+  [5000000,   'TRA LA LA OVERLORD 🦈👑'],
+  [10000000,  'TUNG TUNG TUNG SIGMA 🥁👑'],
+  [50000000,  'TRIPPI TROPPI EMPEROR 🍓🐘👑'],
+  [100000000, '🧠 ULTIMATE BRAIN ROT OVERLORD 🧠'],
+];
+
+// ═══════════════════════════════════════════════════════
+// ACHIEVEMENTS
+// ═══════════════════════════════════════════════════════
+const ACHIEVEMENTS = [
+  { id:'first',    icon:'✨',   name:'First Rizz!',            desc:'Get your very first Rizz',                   check:()=>totalEarned>=1 },
+  { id:'ohio100',  icon:'💀',   name:'Greetings from Ohio',    desc:'Earn 100 Rizz',                              check:()=>totalEarned>=100 },
+  { id:'1k',       icon:'📈',   name:'W Rizz Energy',          desc:'Earn 1,000 Rizz',                            check:()=>totalEarned>=1000 },
+  { id:'10k',      icon:'🧢',   name:'No Cap!',                desc:'Earn 10,000 Rizz',                           check:()=>totalEarned>=10000 },
+  { id:'100k',     icon:'🔥',   name:'Bussin Hard',            desc:'Earn 100,000 Rizz',                          check:()=>totalEarned>=100000 },
+  { id:'1m',       icon:'✨',   name:'RIZZ GOD',               desc:'Earn 1,000,000 Rizz',                        check:()=>totalEarned>=1000000 },
+  { id:'click100', icon:'👆',   name:'Tap Happy',              desc:'Tap 100 times',                              check:()=>totalClicks>=100 },
+  { id:'click500', icon:'🤙',   name:'Tap Maniac',             desc:'Tap 500 times',                              check:()=>totalClicks>=500 },
+  { id:'click2k',  icon:'⚡',   name:'TAP MASTER',             desc:'Tap 2,000 times',                            check:()=>totalClicks>=2000 },
+  { id:'capy1',    icon:'🦫',   name:'Capy Friend',            desc:'Buy your first Capybara',                    check:()=>GENERATORS[0].owned>=1 },
+  { id:'capy10',   icon:'🦫🦫', name:'Capy Army',              desc:'Own 10 Capybaras',                           check:()=>GENERATORS[0].owned>=10 },
+  { id:'tralala1', icon:'🦈',   name:'Tralalero Believer!',    desc:'Buy a Tralalero Squad',                      check:()=>GENERATORS[1].owned>=1 },
+  { id:'tung1',    icon:'🥁',   name:'TUNG TUNG TUNG!',        desc:'Buy a Tung Tung Band',                       check:()=>GENERATORS[2].owned>=1 },
+  { id:'trippi1',  icon:'🍓🐘', name:'Trippi Troppi Bestie',   desc:'Buy a Trippi Troppi Parade',                 check:()=>GENERATORS[3].owned>=1 },
+  { id:'meowl1',   icon:'🐱',   name:'MEOWL!!',                desc:'Buy a Meowl Cat Gang',                       check:()=>GENERATORS[4].owned>=1 },
+  { id:'bomba1',   icon:'🐊✈️', name:'BOMBARDIRO!',            desc:'Buy a Bombardiro Squadron',                  check:()=>GENERATORS[5].owned>=1 },
+  { id:'combo10',  icon:'🌟',   name:'COMBO KING',             desc:'Reach a 10× tap combo!',                     check:()=>maxCombo>=10 },
+  { id:'golden1',  icon:'🌟',   name:'Golden Touch',           desc:'Catch a special surprise visitor!',          check:()=>goldenCaught>=1 },
+  { id:'ohio_esc', icon:'🌪️',  name:'OHIO SURVIVOR',          desc:'Escape an Ohio Alert!',                      check:()=>ohioEscapes>=1 },
+  { id:'prestige1',icon:'⭐',   name:'FULL SIGMA',             desc:'Prestige for the first time!',               check:()=>prestigeCount>=1 },
+  { id:'prestige3',icon:'⭐⭐⭐', name:'TRIPLE SIGMA',           desc:'Prestige 3 times!',                          check:()=>prestigeCount>=3 },
+  { id:'char_all', icon:'🎭',   name:'All Characters!',        desc:'Unlock all 8 clicker characters!',           check:()=>clickerIdx >= CLICKER_CHARS.length-1 },
+];
+
+// ═══════════════════════════════════════════════════════
+// GAME STATE
+// ═══════════════════════════════════════════════════════
+let rizz = 0, totalEarned = 0, totalClicks = 0;
+let rizzPerClick = 1, autoRizz = 0;
+let prestigeCount = 0, prestigeMult = 1;
+let comboCount = 0, comboMult = 1, maxCombo = 0;
+let comboResetTimer = null;
+let rushActive = false, trippiActive = false;
+let goldenCaught = 0, ohioEscapes = 0;
+let ohioActive = false, ohioClicks = 0, ohioTimer = null;
+const cdIntervals = {};
+const unlocked = new Set();
+
+// Unlock thresholds for characters
+const CHAR_UNLOCK_THRESHOLDS = [0, 500, 2000, 8000, 30000, 100000, 400000, 1500000];
+
+// ═══════════════════════════════════════════════════════
+// CLICK HANDLER
+// ═══════════════════════════════════════════════════════
+function handleClick(cx, cy) {
+  comboCount++;
+  clearTimeout(comboResetTimer);
+  comboResetTimer = setTimeout(resetCombo, 1500);
+  comboMult = comboCount>=20 ? 4 : comboCount>=10 ? 2.5 : comboCount>=5 ? 1.7 : 1;
+  if (comboCount > maxCombo) maxCombo = comboCount;
+
+  let base = trippiActive ? rizzPerClick * 10 : rizzPerClick;
+  let earned = Math.ceil(base * comboMult * prestigeMult);
+  rizz += earned; totalEarned += earned; totalClicks++;
+
+  spawnFloat(`+${fmt(earned)} ✨`, cx, cy);
+
+  const comboEl = document.getElementById('combo-display');
+  if (comboCount >= 5) {
+    let lbl = comboCount>=20 ? '👑 RIZZ GOD MODE!' : comboCount>=15 ? '🌟 TUNG TUNG COMBO!' : comboCount>=10 ? '⚡ TRA LA LA COMBO!' : '🔥 ON FIRE!';
+    comboEl.textContent = `COMBO ×${comboCount} ${lbl}`;
+  } else { comboEl.textContent = ''; }
+
+  const btn = document.getElementById('main-clicker');
+  btn.classList.add('clicked');
+  setTimeout(() => btn.classList.remove('clicked'), 110);
+
+  // Check character unlocks
+  updateClickerCharacter();
+  updateScreen();
+  checkAchievements();
+}
+
+function resetCombo() {
+  comboCount = 0; comboMult = 1;
+  document.getElementById('combo-display').textContent = '';
+}
+
+// ═══════════════════════════════════════════════════════
+// CLICKER CHARACTER UPDATES
+// ═══════════════════════════════════════════════════════
+function updateClickerCharacter() {
+  let newIdx = 0;
+  for (let i = 0; i < CHAR_UNLOCK_THRESHOLDS.length; i++) {
+    if (totalEarned >= CHAR_UNLOCK_THRESHOLDS[i]) newIdx = i;
+  }
+  if (newIdx !== clickerIdx) {
+    clickerIdx = newIdx;
+    const ch = CLICKER_CHARS[clickerIdx];
+    document.getElementById('main-clicker').textContent = ch.emoji;
+    document.getElementById('clicker-name').textContent = ch.name + ' — ' + ch.hint;
+    showToast(`🎉 New character unlocked: ${ch.emoji} ${ch.name}! ${ch.hint}`, '#0652DD');
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// GENERATORS
+// ═══════════════════════════════════════════════════════
+function genCost(g) { return Math.round(g.baseCost * Math.pow(1.15, g.owned)); }
+function buyGen(i) {
+  const g = GENERATORS[i];
+  if (rizz < genCost(g)) return;
+  rizz -= genCost(g);
+  g.owned++;
+  recalcAuto();
+  updateScreen();
+  renderGenerators();
+  checkAchievements();
+}
+function recalcAuto() { autoRizz = GENERATORS.reduce((s,g)=>s+g.baseProd*g.owned, 0); }
+
+// ═══════════════════════════════════════════════════════
+// CLICK UPGRADES
+// ═══════════════════════════════════════════════════════
+function buyUpgrade(i) {
+  const u = CLICK_UPGRADES[i];
+  if (u.bought || rizz < u.cost) return;
+  rizz -= u.cost; u.bought = true; rizzPerClick += u.bonus;
+  updateScreen(); renderUpgrades();
+  checkAchievements();
+  showToast(`💪 ${u.name} unlocked! +${u.bonus} Rizz/tap!`, '#f7971e');
+}
+
+// ═══════════════════════════════════════════════════════
+// POWER-UPS
+// ═══════════════════════════════════════════════════════
+function activatePU(id) {
+  const pu = POWERUPS.find(p=>p.id===id);
+  if (!pu || pu.cd > 0) return;
+
+  if (id==='rush') {
+    rushActive = true;
+    showToast('🦈 TRA LA LA RUSH! 3× production for 15 seconds!', '#0652DD');
+    setTimeout(()=>{ rushActive=false; }, pu.dur);
+  } else if (id==='bomb') {
+    let bonus = Math.ceil(autoRizz * 120 * prestigeMult);
+    if (bonus < 50) bonus = 500;
+    rizz += bonus; totalEarned += bonus;
+    showToast(`🐊✈️ BOMBARDIRO BOMB! +${fmt(bonus)} Rizz! BOMBASTIC!`, '#c0392b');
+    updateScreen();
+  } else if (id==='roulette') {
+    doRoulette();
+  } else if (id==='trippi') {
+    trippiActive = true;
+    showToast('🍓🐘 TRIPPI TROPPI BLESSING! 10× tap power for 20 seconds!', '#27ae60');
+    setTimeout(()=>{ trippiActive=false; }, pu.dur);
+  }
+
+  pu.cd = pu.cdMax;
+  startCdTick(pu);
+  renderPowerups();
+}
+
+function startCdTick(pu) {
+  clearInterval(cdIntervals[pu.id]);
+  cdIntervals[pu.id] = setInterval(()=>{
+    if (pu.cd > 0) { pu.cd--; renderPowerups(); }
+    else clearInterval(cdIntervals[pu.id]);
+  }, 1000);
+}
+
+const ROULETTE_EVENTS = [
+  { msg:'🦈 TRALALERO APPEARED! Tra la la +BIG Rizz!', color:'#1289A7',
+    fn:()=>{ let b=Math.max(800,Math.ceil(rizz*0.6)); rizz+=b; totalEarned+=b; } },
+  { msg:'🥁 TUNG TUNG TUNG! Drum solo bonus Rizz!', color:'#8e44ad',
+    fn:()=>{ let b=Math.max(500,Math.ceil(rizz*0.4)); rizz+=b; totalEarned+=b; } },
+  { msg:'🍓🐘 Trippi Troppi stomped your Rizz pile! HUGE bonus!', color:'#27ae60',
+    fn:()=>{ let b=Math.max(1000,Math.ceil(rizz)); rizz+=b; totalEarned+=b; } },
+  { msg:'🐱 MEOWL! The cat knocked everything off the table...', color:'#c0392b',
+    fn:()=>{ rizz=Math.floor(rizz*0.75); } },
+  { msg:'🐊✈️ BOMBARDIRO CROCODILO! 3× all for 12 seconds!', color:'#e74c3c',
+    fn:()=>{ rushActive=true; setTimeout(()=>rushActive=false,12000); } },
+  { msg:'🦫 Capybara vibes! Relax and earn a sweet bonus!', color:'#2ecc71',
+    fn:()=>{ let b=Math.max(300,Math.ceil(autoRizz*90)); rizz+=b; totalEarned+=b; } },
+  { msg:'💀 OHIO TOUCHED YOU! Whoops, small Rizz penalty...', color:'#7f8c8d',
+    fn:()=>{ rizz=Math.max(0,Math.floor(rizz*0.85)); } },
+  { msg:'✨ JACKPOT! All brain rot creatures unite for MEGA Rizz!', color:'#f39c12',
+    fn:()=>{ let b=Math.max(2000,Math.ceil(rizz*1.5+autoRizz*120)); rizz+=b; totalEarned+=b; } },
+];
+
+function doRoulette() {
+  const e = ROULETTE_EVENTS[Math.floor(Math.random() * ROULETTE_EVENTS.length)];
+  e.fn(); showToast(e.msg, e.color); updateScreen();
+}
+
+// ═══════════════════════════════════════════════════════
+// PRESTIGE
+// ═══════════════════════════════════════════════════════
+function doPrestige() {
+  if (rizz < 1000000) return;
+  const boost = Math.round((prestigeMult - 1) * 100);
+  if (!confirm(`⭐ GO FULL SIGMA? ⭐\n\nReset your Rizz & shop for a PERMANENT +50% boost to everything!\n\nCurrent bonus: +${boost}% → +${boost+50}%\n\nYour characters stay unlocked!\n\nAre you sure?`)) return;
+
+  prestigeCount++;
+  prestigeMult += 0.5;
+  rizz = 0;
+  GENERATORS.forEach(g => g.owned = 0);
+  CLICK_UPGRADES.forEach(u => { if (u.bought) { rizzPerClick -= u.bonus; u.bought = false; } });
+  rizzPerClick = 1;
+  recalcAuto();
+
+  const stars = '⭐'.repeat(Math.min(prestigeCount, 10));
+  document.getElementById('prestige-bar').textContent =
+    `${stars} ${prestigeCount} Sigma${prestigeCount>1?'s':''} | ×${prestigeMult.toFixed(1)} PERMANENT BOOST`;
+
+  showToast(`⭐ FULL SIGMA! ×${prestigeMult.toFixed(1)} permanent boost! TRA LA LA!`, '#ffd700');
+  renderShop(); updateScreen(); checkAchievements();
+}
+
+// ═══════════════════════════════════════════════════════
+// GOLDEN TRALALERO RANDOM EVENT
+// ═══════════════════════════════════════════════════════
+const SURPRISE_VISITORS = [
+  { emoji:'🌟🦈', name:'Golden Tralalero', color:'#f39c12' },
+  { emoji:'🌟🥁', name:'Golden Tung Tung', color:'#8e44ad' },
+  { emoji:'🌟🍓🐘',name:'Trippi Troppi Star', color:'#27ae60' },
+  { emoji:'🌟🐱', name:'Golden Meowl',     color:'#e74c3c' },
+  { emoji:'🌟🦫', name:'Golden Capybara',  color:'#f39c12' },
+];
+
+function spawnSurpriseVisitor() {
+  if (document.getElementById('golden-visitor')) return;
+  const v = SURPRISE_VISITORS[Math.floor(Math.random() * SURPRISE_VISITORS.length)];
+  const el = document.createElement('div');
+  el.id = 'golden-visitor';
+  el.className = 'random-event';
+  el.textContent = v.emoji;
+  el.style.left = Math.max(10, Math.random() * (window.innerWidth  - 95)) + 'px';
+  el.style.top  = Math.max(80, Math.random() * (window.innerHeight - 125)) + 'px';
+
+  const catchFn = () => {
+    if (!document.getElementById('golden-visitor')) return;
+    el.remove();
+    goldenCaught++;
+    let bonus = Math.max(600, Math.ceil((autoRizz*60 + rizz*0.5) * prestigeMult));
+    rizz += bonus; totalEarned += bonus;
+    showToast(`${v.emoji} ${v.name} CAUGHT! +${fmt(bonus)} Rizz!`, v.color);
+    updateScreen(); checkAchievements();
+  };
+  el.addEventListener('click', catchFn);
+  el.addEventListener('touchstart', e=>{ e.preventDefault(); catchFn(); }, {passive:false});
+
+  document.body.appendChild(el);
+  setTimeout(()=>{ if (el.parentNode) el.remove(); }, 6500);
+}
+
+function scheduleSurprise() {
+  const delay = (75 + Math.random() * 135) * 1000;
+  setTimeout(()=>{ spawnSurpriseVisitor(); scheduleSurprise(); }, delay);
+}
+
+// ═══════════════════════════════════════════════════════
+// OHIO ALERT
+// ═══════════════════════════════════════════════════════
+function startOhioAlert() {
+  if (ohioActive) return;
+  ohioActive = true; ohioClicks = 0;
+  const needed = 18 + Math.floor(Math.random() * 12);
+  const overlay = document.getElementById('ohio-alert');
+  overlay.style.display = 'flex';
+  overlay._needed = needed;
+
+  let progress = 100;
+  ohioTimer = setInterval(()=>{
+    progress -= (100 / 50); // 5 seconds at 100ms
+    document.getElementById('ohio-bar').style.width = Math.max(0, progress) + '%';
+    if (progress <= 0) {
+      clearInterval(ohioTimer);
+      overlay.style.display = 'none';
+      ohioActive = false;
+      let penalty = Math.ceil(rizz * 0.25);
+      rizz = Math.max(0, rizz - penalty);
+      showToast(`💀 OHIO GOT YOU! Lost ${fmt(penalty)} Rizz! Tap faster next time!`, '#7f8c8d');
+      updateScreen();
+    }
+  }, 100);
+}
+
+function ohioClick() {
+  if (!ohioActive) return;
+  ohioClicks++;
+  const needed = document.getElementById('ohio-alert')._needed;
+  document.getElementById('ohio-bar').style.width = Math.min(100, (ohioClicks/needed)*100) + '%';
+  if (ohioClicks >= needed) {
+    clearInterval(ohioTimer);
+    document.getElementById('ohio-alert').style.display = 'none';
+    ohioActive = false; ohioEscapes++;
+    let bonus = Math.max(200, Math.ceil(rizz * 0.2));
+    rizz += bonus; totalEarned += bonus;
+    showToast(`🎉 OHIO ESCAPED! Tung Tung is proud! +${fmt(bonus)} Rizz bonus!`, '#1289A7');
+    updateScreen(); checkAchievements();
+  }
+}
+
+function scheduleOhio() {
+  const delay = (150 + Math.random() * 210) * 1000;
+  setTimeout(()=>{ startOhioAlert(); scheduleOhio(); }, delay);
+}
+
+// ═══════════════════════════════════════════════════════
+// ACHIEVEMENTS
+// ═══════════════════════════════════════════════════════
+function checkAchievements() {
+  ACHIEVEMENTS.forEach(a=>{
+    if (!unlocked.has(a.id) && a.check()) {
+      unlocked.add(a.id);
+      showToast(`🏆 Achievement: ${a.icon} ${a.name}!`, '#8e44ad');
+      renderAchievements();
+    }
+  });
+}
+
+// ═══════════════════════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════════════════════
+let toastTimer = null;
+function showToast(msg, color) {
+  const t = document.getElementById('toast');
+  t.innerHTML = msg;
+  t.style.background = `linear-gradient(135deg, ${color}ee, ${color}99)`;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>{ t.classList.remove('show'); }, 2900);
+}
+
+// ═══════════════════════════════════════════════════════
+// FLOATING TEXT
+// ═══════════════════════════════════════════════════════
+function spawnFloat(text, x, y) {
+  const el = document.createElement('div');
+  el.className = 'float-text';
+  el.textContent = text;
+  el.style.left = Math.max(4, (x||window.innerWidth/2) - 18) + 'px';
+  el.style.top  = Math.max(60, (y||200) - 18) + 'px';
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(), 950);
+}
+
+// ═══════════════════════════════════════════════════════
+// NUMBER FORMAT
+// ═══════════════════════════════════════════════════════
+function fmt(n) {
+  n = Math.floor(n);
+  if (n>=1e12) return (n/1e12).toFixed(2)+'T';
+  if (n>=1e9)  return (n/1e9).toFixed(2)+'B';
+  if (n>=1e6)  return (n/1e6).toFixed(2)+'M';
+  if (n>=1e3)  return (n/1e3).toFixed(1)+'K';
+  return n.toString();
+}
+
+// ═══════════════════════════════════════════════════════
+// AUTO TICK (every 100ms for smooth counter)
+// ═══════════════════════════════════════════════════════
+setInterval(()=>{
+  if (autoRizz > 0) {
+    let prod = autoRizz * (rushActive ? 3 : 1) * prestigeMult / 10;
+    rizz += prod; totalEarned += prod;
+  }
+  updateScreen();
+}, 100);
+
+// ═══════════════════════════════════════════════════════
+// UPDATE SCREEN
+// ═══════════════════════════════════════════════════════
+function updateScreen() {
+  document.getElementById('rizz-count').textContent = fmt(rizz);
+
+  const effAuto = autoRizz * (rushActive ? 3 : 1) * prestigeMult;
+  document.getElementById('rps-display').textContent = `⚡ ${fmt(effAuto)} Rizz/sec`;
+
+  const effClick = rizzPerClick * (trippiActive ? 10 : 1);
+  let extras = '';
+  if (trippiActive) extras += ' 🍓🐘×10!';
+  if (rushActive)   extras += ' 🦈RUSH!';
+  document.getElementById('click-power-display').textContent = `+${fmt(effClick)} per tap${extras}`;
+
+  const ch = CLICKER_CHARS[clickerIdx];
+  document.getElementById('clicker-name').textContent = ch.name + ' — ' + ch.hint;
+
+  let title = LEVEL_TITLES[0][1];
+  for (const [thresh,name] of LEVEL_TITLES) { if (totalEarned >= thresh) title = name; }
+  document.getElementById('level-title').textContent = 'Level: ' + title;
+
+  document.getElementById('prestige-btn').style.display = rizz >= 1000000 ? 'inline-block' : 'none';
+
+  // Generator buttons
+  GENERATORS.forEach((g,i)=>{
+    const btn = document.getElementById(`genbtn-${i}`);
+    if (!btn) return;
+    btn.disabled = rizz < genCost(g);
+    const badge = btn.querySelector('.item-badge');
+    if (badge) badge.textContent = `${fmt(genCost(g))} 💰 ×${g.owned}`;
+  });
+
+  // Upgrade buttons
+  CLICK_UPGRADES.forEach((u,i)=>{
+    const btn = document.getElementById(`upgbtn-${i}`);
+    if (!btn || u.bought) return;
+    btn.disabled = rizz < u.cost;
+  });
+}
+
+// ═══════════════════════════════════════════════════════
+// RENDER SHOP
+// ═══════════════════════════════════════════════════════
+function renderShop() {
+  renderGenerators(); renderUpgrades(); renderPowerups(); renderAchievements();
+}
+
+function renderGenerators() {
+  const list = document.getElementById('gen-list');
+  list.innerHTML = '<p class="shop-hint">Hire brain rot creatures to earn Rizz while you sleep! 😴</p>';
+  GENERATORS.forEach((g,i)=>{
+    const btn = document.createElement('button');
+    btn.className = 'item-btn gen-btn';
+    btn.id = `genbtn-${i}`;
+    btn.disabled = rizz < genCost(g);
+    btn.onclick = ()=>buyGen(i);
+    btn.innerHTML = `
+      <div class="item-info">
+        <div class="item-name">${g.emoji} ${g.name}</div>
+        <div class="item-desc">${g.desc}</div>
+      </div>
+      <div class="item-badge">${fmt(genCost(g))} 💰 ×${g.owned}</div>`;
+    list.appendChild(btn);
+  });
+}
+
+function renderUpgrades() {
+  const list = document.getElementById('upg-list');
+  list.innerHTML = '<p class="shop-hint">Make every tap WAY more powerful! 💪</p>';
+  CLICK_UPGRADES.forEach((u,i)=>{
+    const btn = document.createElement('button');
+    btn.className = 'item-btn upg-btn' + (u.bought?' bought':'');
+    btn.id = `upgbtn-${i}`;
+    btn.disabled = u.bought || rizz < u.cost;
+    btn.onclick = ()=>buyUpgrade(i);
+    btn.innerHTML = `
+      <div class="item-info">
+        <div class="item-name">${u.name} ${u.bought?'✅':''}</div>
+        <div class="item-desc">${u.desc}</div>
+      </div>
+      <div class="item-badge">${u.bought ? 'OWNED!' : fmt(u.cost)+' 💰'}</div>`;
+    list.appendChild(btn);
+  });
+}
+
+function renderPowerups() {
+  const list = document.getElementById('pu-list');
+  list.innerHTML = '<p class="shop-hint">FREE special boosts — just wait for them to recharge! ⚡</p>';
+  POWERUPS.forEach(pu=>{
+    const btn = document.createElement('button');
+    btn.className = 'item-btn pu-btn';
+    btn.id = `pubtn-${pu.id}`;
+    btn.disabled = pu.cd > 0;
+    btn.onclick = ()=>activatePU(pu.id);
+    btn.innerHTML = `
+      <div class="item-info">
+        <div class="item-name">${pu.name}</div>
+        <div class="item-desc">${pu.desc}</div>
+      </div>
+      <div class="item-badge">${pu.cd > 0 ? '⏳ '+pu.cd+'s' : '✅ READY!'}</div>`;
+    list.appendChild(btn);
+  });
+}
+
+function renderAchievements() {
+  const list = document.getElementById('ach-list');
+  list.innerHTML = `<p class="shop-hint">Unlocked: ${unlocked.size} / ${ACHIEVEMENTS.length} 🏆</p>`;
+  ACHIEVEMENTS.forEach(a=>{
+    const div = document.createElement('div');
+    div.className = 'ach-item' + (unlocked.has(a.id) ? ' unlocked' : '');
+    div.innerHTML = `<span class="ach-icon">${a.icon}</span><div><strong>${a.name}</strong><br><small>${a.desc}</small></div>`;
+    list.appendChild(div);
+  });
+}
+
+// ═══════════════════════════════════════════════════════
+// TAB SWITCHING
+// ═══════════════════════════════════════════════════════
+function switchTab(name, btn) {
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  btn.classList.add('active');
+}
+
+// ═══════════════════════════════════════════════════════
+// INPUT EVENTS
+// ═══════════════════════════════════════════════════════
+const mainBtn = document.getElementById('main-clicker');
+mainBtn.addEventListener('click', e=>{
+  e.preventDefault();
+  handleClick(e.clientX, e.clientY);
+});
+mainBtn.addEventListener('touchstart', e=>{
+  e.preventDefault();
+  const t = e.touches[0];
+  handleClick(t ? t.clientX : window.innerWidth/2, t ? t.clientY : 250);
+}, {passive:false});
+
+// ═══════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════
+renderShop();
+updateScreen();
+checkAchievements();
+
+// First surprise visitor in 40 seconds!
+setTimeout(()=>{ spawnSurpriseVisitor(); scheduleSurprise(); }, 40000);
+
+// Ohio alert starts after 3 minutes
+setTimeout(scheduleOhio, 3*60*1000);
+
+// Welcome message
+setTimeout(()=>showToast('🦈 Tra la la! Tap to collect Rizz! 🥁 TUNG TUNG!', '#0652DD'), 1000);
+</script>
+</body>
+</html>
